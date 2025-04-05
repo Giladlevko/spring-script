@@ -1,0 +1,45 @@
+extends ColorRect
+var start_position: Vector2
+var spring_rigidness = 0.1
+var spring_damping = 0.2
+var spring_velocity = 0.0
+var spring_destination = 0.0
+var player:CharacterBody2D = null
+@export var bend_value = 5.0
+@export var norm_pos: int = -19
+@export var on_platform_pos: int = -23
+var in_log_area: bool = false
+var sink_destination: float
+func _ready() -> void:
+	start_position = global_position
+
+
+func _process(delta: float) -> void:
+	if player == null:
+		spring_destination = norm_pos
+	elif player.is_on_floor():
+		var distance =abs(player.global_position.x - global_position.x)
+		var percents = distance/35
+		spring_destination = bend_value * percents + on_platform_pos
+	else:
+		spring_destination = norm_pos
+	spring()
+
+
+func spring():
+	var distance_to_destination = global_position.y + spring_destination
+	var loss = spring_damping * spring_velocity
+	#hooke's law
+	var force = -spring_rigidness * distance_to_destination - loss
+	spring_velocity += force
+	global_position.y += spring_velocity
+
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	if body is CharacterBody2D:
+		player = body
+
+
+
+func _on_area_2d_body_exited(body: Node2D) -> void:
+	if body is CharacterBody2D:
+		player = null
